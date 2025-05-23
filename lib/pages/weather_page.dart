@@ -1,37 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_weather_app/data/models/weather_model.dart';
-import 'package:flutter_weather_app/data/services/weather_service.dart';
+import 'package:flutter_weather_app/viewmodels/weather_view_model.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
-class WeatherPage extends StatefulWidget {
+class WeatherPage extends StatelessWidget {
   const WeatherPage({super.key});
 
-  @override
-  State<WeatherPage> createState() => _WeatherPageState();
-}
-
-class _WeatherPageState extends State<WeatherPage> {
-  // api key
-  final _weathersService = WeatherService('12be6370e19460a2a5afe25bda79da76');
-  Weather? _weather;
-
-  // busca weather
-  _fetchWeather() async {
-    String cityName = await _weathersService.getCurrentCity();
-
-    try {
-      final weather = await _weathersService.getWeather(cityName);
-      setState(() {
-        _weather = weather;
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  // animação do weather
+  // Animações baseadas na condição do clima
   String getWeatherAnimation(String? mainCondition) {
-    if (mainCondition == null) return 'assets/Sunny.json'; // animacao default
+    if (mainCondition == null) return 'assets/Sunny.json'; // animação default
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -53,29 +31,44 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    // busca weather ao iniciar
-    _fetchWeather();
-  }
-
-
-  @override
   Widget build(BuildContext context) {
+    // O WeatherViewModel é fornecido aqui pelo Provider
+    final weatherViewModel = Provider.of<WeatherViewModel>(context);
+
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // cidade
-          Text(_weather?.cityName ?? "Carregando cidade..."),
+      appBar: AppBar(
+        title: Text('Clima Atual'),
+      ),
+      body: FutureBuilder(
+        // Carrega o clima ao iniciar
+        future: weatherViewModel.fetchWeather(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-          // animacao
-          Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro ao carregar dados'));
+          }
 
-          // temperatura
-          Text('${_weather?.temperature.round()}°C')
-        ],
+          Weather? weather = weatherViewModel.weather;
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Nome da cidade
+                Text(weather?.cityName ?? "Cidade não encontrada"),
+
+                // Animação do clima
+                Lottie.asset(getWeatherAnimation(weather?.mainCondition)),
+
+                // Temperatura
+                Text('${weather?.temperature.round()}°C'),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
