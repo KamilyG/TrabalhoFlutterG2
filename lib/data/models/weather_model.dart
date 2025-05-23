@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class Weather {
   
 final String cityName;
@@ -11,7 +9,7 @@ Weather({
   required this.temperature, 
   required this.mainCondition});
 
-  factory Weather.fromJson(Map<String, dynamic>) {
+  factory Weather.fromJson(Map<String, dynamic> json) {
     return Weather(
       cityName: json['name'], 
       temperature: json['main']['temp'].toDouble(), 
