@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
-import 'package:flutter_weather_app/data/models/weather_model.dart';
 import 'package:http/http.dart' as http;
+
+import '../models/weather_model.dart';
 
 class WeatherService {
 
@@ -32,16 +33,15 @@ class WeatherService {
 
     //busca localizacao atual
     Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high // usar LocationSettings class
+      desiredAccuracy: LocationAccuracy.high // TODO usar LocationSettings class
     );
 
     //converte localizacao em lista de marcadores
     List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
 
     //extrai o nome da cidade do primeiro marcador
-    String? city = placemarks[0].locality;
+    String? city = placemarks[0].subAdministrativeArea;
 
     return city ?? "";
-
   }
 }

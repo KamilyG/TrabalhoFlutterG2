@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_weather_app/data/models/weather_model.dart';
-import 'package:flutter_weather_app/data/services/weather_service.dart';
+import '../../data/services/models/weather_model.dart';
+import 'package:flutter_weather_app/data/services/api/weather_service.dart';
 
 class WeatherViewModel extends ChangeNotifier {
-  final WeatherService _weatherService;
+
+  // TODO ajeitar view model
+  /*final WeatherService _weatherService;
   Weather? _weather;
 
   Weather? get weather => _weather;
@@ -20,5 +22,5 @@ class WeatherViewModel extends ChangeNotifier {
     } catch (e) {
       print("Erro ao buscar o clima: $e");
     }
-  }
+  }*/
 }
