@@ -1,34 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_weather_app/data/services/api/weather_service.dart';
+import 'package:flutter_weather_app/ui/weather/weather_view_model.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 
-import '../../data/services/models/weather_model.dart';
 
-class WeatherPage extends StatefulWidget {
-  const WeatherPage({super.key});
+class WeatherPage extends StatelessWidget {
+  const WeatherPage({super.key, required this.viewModel});
 
-  @override
-  State<WeatherPage> createState() => _WeatherPageState();
-}
-
-class _WeatherPageState extends State<WeatherPage> {
-  // api key
-  final _weathersService = WeatherService('12be6370e19460a2a5afe25bda79da76');
-  Weather? _weather;
-
-  // busca weather
-  _fetchWeather() async {
-    String cityName = await _weathersService.getCurrentCity();
-
-    try {
-      final weather = await _weathersService.getWeather(cityName);
-      setState(() {
-        _weather = weather;
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
+  final WeatherViewModel viewModel;
 
   // animação do weather
   String getWeatherAnimation(String? mainCondition) {
@@ -52,31 +31,36 @@ class _WeatherPageState extends State<WeatherPage> {
         return 'assets/Sunny.json';
     }
   }
-
-  @override
-  void initState() {
-    super.initState();
-
-    // busca weather ao iniciar
-    _fetchWeather();
-  }
-
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // cidade
-          Text(_weather?.cityName ?? "Carregando cidade..."),
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Clima Atual'),
+        ),
+        body: SafeArea(
+          child: ListenableBuilder(
+            listenable: viewModel,
+            builder: (context, _) {
+              if (viewModel.getCurrentCity.error) {
+                return const Text('Erro');
+              }
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                // Nome da cidade
+                  Text(viewModel.getCurrentCity.toString() ?? "Cidade não encontrada"),
 
-          // animacao
-          Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+                // Animação do clima
+                  Lottie.asset(getWeatherAnimation(viewModel.weather?.mainCondition)),
 
-          // temperatura
-          Text('${_weather?.temperature.round()}°C')
-        ],
+                // Temperatura
+                  Text('${viewModel.weather?.temperature?.round()}°C'),
+              ]
+              );
+            },
+          ),
+        ),
       ),
     );
   }
