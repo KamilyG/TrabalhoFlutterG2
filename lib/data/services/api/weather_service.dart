@@ -3,61 +3,66 @@ import 'dart:convert';
 import 'package:flutter_weather_app/result.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-
 import 'package:http/http.dart' as http;
 
 import '../models/weather_model.dart';
 
 class WeatherService {
-
-  static const BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+  static const _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
+  static const _apiKey =
+      '62910d3673df834f284cb3cf1d56507b'; // <-- sua chave mantida aqui
 
   Future<Result<Weather>> getWeather(String cityName) async {
     try {
-      final response = await http.get(
-          Uri.parse('$BASE_URL?q=$cityName&appid=12be6370e19460a2a5afe25bda79da76&units=metric'));
+      final uri = Uri.parse(
+        '$_baseUrl?q=$cityName&appid=$_apiKey&units=metric',
+      );
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        return Result.ok(
-            Weather.fromJson(jsonDecode(response.body))
-        );
+        return Result.ok(Weather.fromJson(jsonDecode(response.body)));
       } else {
-        return Result.error(Exception());
+        return Result.error(Exception('Erro da API: ${response.statusCode}'));
       }
-    } on Exception catch (error) {
-      return Result.error(error);
+    } catch (error) {
+      return Result.error(error as Exception);
     }
   }
 
-  //TODO usar o Result aqui?
   Future<Result<String>> getCurrentCity() async {
     try {
-      //pega permissao de localização do usuario
+      // Solicita permissão de localização
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
+      if (permission == LocationPermission.deniedForever) {
+        return Result.error(
+          Exception('Permissão de localização permanentemente negada.'),
+        );
+      }
 
-      //busca localizacao atual
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high // TODO usar LocationSettings class
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
       );
 
-      //converte localizacao em lista de marcadores
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      // Pega o nome da cidade mais confiável
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      final city = placemarks.first.locality;
 
-      //extrai o nome da cidade do primeiro marcador
-      String? city = placemarks[0].subAdministrativeArea;
-
-      if (city != null) {
-        return Result.ok(
-            city
-        );
+      if (city != null && city.isNotEmpty) {
+        return Result.ok(city);
       } else {
-        return Result.error(Exception());
+        return Result.error(Exception('Cidade não encontrada.'));
       }
-    } on Exception catch (error) {
-      return Result.error(error);
+    } catch (error) {
+      return Result.error(error as Exception);
     }
   }
 }
