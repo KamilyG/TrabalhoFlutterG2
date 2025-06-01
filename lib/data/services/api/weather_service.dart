@@ -53,7 +53,7 @@ class WeatherService {
         position.latitude,
         position.longitude,
       );
-      final city = placemarks.first.locality;
+      final city = placemarks.first.subAdministrativeArea;
 
       if (city != null && city.isNotEmpty) {
         return Result.ok(city);
