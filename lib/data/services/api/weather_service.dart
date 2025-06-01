@@ -1,27 +1,28 @@
+// lib/data/services/weather_service.dart
+
 import 'dart:convert';
 
+import 'package:flutter_weather_app/data/services/models/weather_model.dart';
 import 'package:flutter_weather_app/result.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/weather_model.dart';
-
 class WeatherService {
   static const _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
   static const _apiKey =
-      '62910d3673df834f284cb3cf1d56507b'; // <-- sua chave mantida aqui
+      '62910d3673df834f284cb3cf1d56507b'; // Substitua pela sua chave
 
   Future<Result<Weather>> getWeather(String cityName) async {
     try {
       final uri = Uri.parse(
         '$_baseUrl?q=$cityName&appid=$_apiKey&units=metric',
       );
-
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        return Result.ok(Weather.fromJson(jsonDecode(response.body)));
+        final Map<String, dynamic> jsonMap = jsonDecode(response.body);
+        return Result.ok(Weather.fromJson(jsonMap));
       } else {
         return Result.error(Exception('Erro da API: ${response.statusCode}'));
       }
@@ -32,7 +33,6 @@ class WeatherService {
 
   Future<Result<String>> getCurrentCity() async {
     try {
-      // Solicita permissão de localização
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -49,7 +49,6 @@ class WeatherService {
         ),
       );
 
-      // Pega o nome da cidade mais confiável
       final placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,

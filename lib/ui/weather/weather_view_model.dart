@@ -1,8 +1,10 @@
+// lib/view_models/weather_view_model.dart
+
 import 'package:flutter/material.dart';
-import '../../command.dart';
-import '../../data/repositories/repository.dart';
-import '../../data/services/models/weather_model.dart';
-import '../../result.dart';
+import 'package:flutter_weather_app/data/services/models/weather_model.dart';
+import 'package:flutter_weather_app/data/repositories/repository.dart';
+import 'package:flutter_weather_app/result.dart';
+import 'package:flutter_weather_app/command.dart';
 
 class WeatherViewModel extends ChangeNotifier {
   WeatherViewModel({required Repository repository})
@@ -21,6 +23,16 @@ class WeatherViewModel extends ChangeNotifier {
 
   late final Command1<void, String> getWeather;
   late final Command0 getCurrentCity;
+
+  // Índice de aba (0=Home, 1=Infos, 2=Profile)
+  int _selectedTabIndex = 0;
+  int get selectedTabIndex => _selectedTabIndex;
+
+  void setSelectedTabIndex(int index) {
+    if (index == _selectedTabIndex) return;
+    _selectedTabIndex = index;
+    notifyListeners();
+  }
 
   Future<Result> _getCurrentCity() async {
     try {
