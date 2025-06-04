@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 class WeatherService {
   static const _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
   static const _apiKey =
-      '62910d3673df834f284cb3cf1d56507b'; // Substitua pela sua chave
+      '62910d3673df834f284cb3cf1d56507b';
 
   Future<Result<Weather>> getWeather(String cityName) async {
     try {
